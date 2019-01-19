@@ -16,7 +16,7 @@ export default {
                         file.push(thirtyFiles[i]);
                     }
                     file.sort((a,b) => (a > b) ? 1 : ((b> a) ? -1 : 0));
-                    file.sort().forEach(file => {
+                    file.forEach(file => {
                         fs.readFile(path + file, "utf8", (err, res) => {
                             if (err) {
                                 throw err;
@@ -35,25 +35,33 @@ export default {
                         throw err;
                     }
                     let control=0;
-                    let file = [];
+                    let filebyData = [];
                     let dateFiles = files.reverse();
                     for(let i=0; i<dateFiles.length; i++) {
-
-                        file.push(thirtyFiles[i]);
+                        if(Date.parse(dateFiles[i].split('.t')[0]) > Date.parse(isodata)){
+                            filebyData.push(dateFiles[i]);
+                        }else{
+                            i=dateFiles.length;
+                        }
                     }
-                    file.sort((a,b) => (a > b) ? 1 : ((b> a) ? -1 : 0));
-                    file.sort().forEach(file => {
-                        fs.readFile(path + file, "utf8", (err, res) => {
-                            if (err) {
-                                throw err;
-                            }
-                            this.data.push(JSON.parse(res)[0]);
-                            ++control;
-                            if (control === 30) {  //читаем 30 файлов
-                                callback();
-                            }
+                    filebyData.sort((a,b) => (a > b) ? 1 : ((b> a) ? -1 : 0));
+                    if(filebyData[0] != null){
+                        filebyData.forEach(file => {
+                            fs.readFile(path + file, "utf8", (err, res) => {
+                                if (err) {
+                                    throw err;
+                                }
+                                this.data.push(JSON.parse(res)[0]);
+                                ++control;
+                                if (control === filebyData.length) {
+                                    callback();
+                                }
+                            });
                         });
-                    });
+                    }else {
+                        this.data = [];
+                        callback();
+                    }
                 });
             }
     },
